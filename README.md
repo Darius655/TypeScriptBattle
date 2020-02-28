@@ -1,1 +1,2 @@
-# TypeScriptBattle
+# NiumBattleExercise
+This Is GOT task with Typescript
