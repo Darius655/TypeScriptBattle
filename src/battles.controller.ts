@@ -1,8 +1,6 @@
 import * as express from 'express';
 import * as mongodb from 'mongodb';
 import { MongoHelper } from './mongo.helper';
-import { callbackify } from 'util';
-
 
 const todoRoutes = express.Router();
 
@@ -241,49 +239,35 @@ todoRoutes.get('/stats', (req: express.Request, resp: express.Response, next: ex
     })
 });
 
-
-todoRoutes.get('/search', (req: express.Request, resp: express.Response, next: express.NextFunction) =>{
-    const collection = getCollection();
-    collection.find({}).toArray((err, battles) => {
-        if(err){
-            resp.status(500);
-            resp.end();
-            console.error('Cautch Error', err);
-        }else{            
+// todoRoutes.get('/search', (req: express.Request, resp: express.Response, next: express.NextFunction) => {
+//     const collection = getCollection();
+//     const query = Object.keys(req.query).map((key => {
+//         const obj = {};
+//         obj[key] = req.query[key];
+//         return obj;
+//     }));
 
 
-            
-            resp.json(null);
-        }
-    })
-});
+//     resp.json(query);
+// });
 
-
-todoRoutes.post('/search', (req: express.Request, resp: express.Response, next: express.NextFunction) =>{
-    const description = req.body['description'];
-    const collection = getCollection();
-    collection.insert({description: description});
-    resp.end();
-});
-
-todoRoutes.put('/search/:id', (req: express.Request, resp: express.Response, next: express.NextFunction) =>{
-    console.info(req.body);
-    console.info(req.params.id);
-    const description = req.body['description'];
-    const id = req.params['id'];
-    const collection = getCollection();
-
-    collection.findOneAndUpdate({"_id": new mongodb.ObjectId(id)},{$set: {description: description}});
-
-    resp.end();
-});
-
-todoRoutes.delete('/todo/:id', (req: express.Request, resp: express.Response, next: express.NextFunction) =>{
-    const id = req.params['id'];
-    const collection = getCollection();
-
-    collection.remove({"_id": new mongodb.ObjectId(id)});
-    resp.end();
+todoRoutes.get('/search', (req: express.Request, resp: express.Response, next: express.NextFunction) => {
+	const collection = getCollection();
+	const parameters = req.query;
+	const andQuery = Object.keys(parameters).map((key => {
+		const obj = {};
+		obj[key] = parameters[key];
+		return obj;
+	}));
+	collection.find({$and: andQuery }).toArray((err, battles) => {
+		if(err){
+            		resp.status(500);
+            		resp.end();
+            		console.error('Cautch Error', err);
+        	} else {
+			resp.send(battles);
+		}
+	});
 });
 
 export { todoRoutes };
