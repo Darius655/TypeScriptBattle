@@ -1,6 +1,7 @@
 import * as express from 'express';
 import * as mongodb from 'mongodb';
 import { MongoHelper } from './mongo.helper';
+import { callbackify } from 'util';
 
 
 const todoRoutes = express.Router();
@@ -8,30 +9,42 @@ const todoRoutes = express.Router();
 const getCollection = () => {
     return MongoHelper.client.db('battles').collection('battles');
 }
+
 //GET REQUESTS
 todoRoutes.get('/list', (req: express.Request, resp: express.Response, next: express.NextFunction) =>{
     const collection = getCollection();
     collection.find({}).toArray((err, items) => {
+        
         if(err){
             resp.status(500);
             resp.end();
             console.error('Cautch Error', err);
         }else{
-            items = items.map((item) => {return {name: item.name, location: item.location}});
-            
+            //items = items.map((item) => {return {name: item.name, location: item.location}});
+            let names_location_array = [];
+
+
             for (var i in items) {
+
                 if(items[i].location == '')
                 {
                     items[i].location = 'place of the battle is unknown';
                 }
-                console.log('The Battle: ' + items[i].name + ' was taken in ' + items[i].location);
 
+                names_location_array[i] = 'The Battle ' + items[i].name + ' was taken in ' + items[i].location;
+
+
+
+                // console.log('The Battle: ' + items[i].name + ' was taken in ' + items[i].location);
+               
             }
-            resp.json(items);
+            // console.log(items[2].name);
+            resp.json(names_location_array);
         }
     })
 });
 
+//Count Done:
 todoRoutes.get('/count', (req: express.Request, resp: express.Response, next: express.NextFunction) =>{
     const collection = getCollection();
 
