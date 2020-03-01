@@ -62,16 +62,19 @@ todoRoutes.get('/stats', (req: express.Request, resp: express.Response, next: ex
             resp.end();
             console.error('Cautch Error', err);
         }else{
-            let attackers_array = [];
-            let deffender_array = [];
-            let most_active_attacker_king;
-            let most_active_deffecder_king;
-
+            // PREPERATE UNIQ VALUES
             let uniquesArray_ofAttacker = [];
-            let count = 0;
+            let uniquesArray_ofdefender = [];
+            let uniquesArray_ofregion = [];
+            let uniquesArray_ofbattle_types = [];
+            let countatk = 0;
+            let countdef = 0;
+            let countreg = 0;
+            let countBtype = 0;
             let found_attacker = false;
             let found_deffender = false;
             let found_region = false;
+            let found_battle_type = false;
 
             for (let i = 0; i<battles.length;i++){
 
@@ -80,41 +83,132 @@ todoRoutes.get('/stats', (req: express.Request, resp: express.Response, next: ex
                         found_attacker = true;
                     }
                 }
-                count++;
-                if(count == 1 && found_attacker == false){
+                for(let y = 0; y < uniquesArray_ofdefender.length;y++){
+                    if(battles[i].attacker_king == uniquesArray_ofdefender[y]){
+                        found_deffender = true;
+                    }
+                }
+                for(let y = 0; y < uniquesArray_ofregion.length;y++){
+                    if(battles[i].attacker_king == uniquesArray_ofregion[y]){
+                        found_region = true;
+                    }
+                }
+                for(let y = 0; y < uniquesArray_ofbattle_types.length;y++){
+                    if(battles[i].battle_type == ''){
+                        battles[i].battle_type = 'unknown_Battle_type';
+                    }
+                    if(battles[i].battle_type == uniquesArray_ofbattle_types[y]){
+                        found_battle_type = true;
+                    }
+                }
+                countatk++;
+                countdef++;
+                countreg++;
+                countBtype++;
+                if(countatk == 1 && found_attacker == false){
                     uniquesArray_ofAttacker.push(battles[i].attacker_king)
                 }
-                count = 0;
-                found_attacker = false;     
+                if(countdef == 1 && found_deffender == false){
+                    uniquesArray_ofdefender.push(battles[i].defender_king)
+                }
+                if(countreg == 1 && found_region == false){
+                    uniquesArray_ofregion.push(battles[i].region)
+                }
+                if(countBtype == 1 && found_battle_type == false){
+                    uniquesArray_ofbattle_types.push(battles[i].battle_type)
+                }
+                countatk = 0;
+                countdef = 0;
+                countreg = 0;
+                countBtype = 0;
+                found_attacker = false;
+                found_deffender = false;
+                found_region = false;  
+                found_battle_type = false;
             }
-            
-            let most_appeared_values = 0; 
-            let counter=0;
+            console.log(uniquesArray_ofAttacker);
+            console.log(uniquesArray_ofdefender);
+            console.log(uniquesArray_ofregion);
+            console.log(uniquesArray_ofbattle_types);
+            //FIND MOST ACTIVE VALUES FROM ARRAYS
+            let most_appeared_attack_values = 0;
+            let most_appeared_def_values = 0;
+            let most_appeared_reg_values = 0;
+            let counter_atk=0;
+            let counter_def=0;
+            let counter_reg=0;
             let most_active_attacker;
-            let most_active_deffender;
+            let most_active_defender;
             let most_active_region;
-
+            //Most active attacker
             for(let i = 0; i<uniquesArray_ofAttacker.length;i++){
                 for(let y = 0; y<battles.length;y++){
                     if(uniquesArray_ofAttacker[i] == battles[y].attacker_king){
-                        counter++;
+                        counter_atk++;
                     }                      
                 }
-                //console.log(counter);
-                if(most_appeared_values < counter){
-                    most_appeared_values = counter;
+                if(most_appeared_attack_values < counter_atk){
+                    most_appeared_attack_values = counter_atk;
                     most_active_attacker = uniquesArray_ofAttacker[i];
                 }
-                counter = 0;
-
+                counter_atk = 0;
             }
-            
-            console.log(most_active_attacker);
-            resp.json(null);
+            //Most active deffender
+            for(let i = 0; i<uniquesArray_ofdefender.length;i++){
+                for(let y = 0; y<battles.length;y++){
+                    if(uniquesArray_ofdefender[i] == battles[y].defender_king){
+                        counter_def++;
+                    }                      
+                }
+                if(most_appeared_def_values < counter_def){
+                    most_appeared_def_values = counter_def;
+                    most_active_defender = uniquesArray_ofdefender[i];
+                }
+                counter_def = 0;
+            }
+            //Most active reggion
+            for(let i = 0; i<uniquesArray_ofregion.length;i++){
+                for(let y = 0; y<battles.length;y++){
+                    if(uniquesArray_ofregion[i] == battles[y].region){
+                        counter_reg++;
+                    }                      
+                }
+                if(most_appeared_reg_values < counter_reg){
+                    most_appeared_reg_values = counter_reg;
+                    most_active_region = uniquesArray_ofregion[i];
+                }
+                counter_reg = 0;
+            }
+
+            // console.log(most_active_attacker);
+            // console.log(most_active_defender);
+            // console.log(most_active_region);
+
+
+
+
+            let response = {
+                most_active: {
+                    attacker_king: most_active_attacker,
+                    defender_king: most_active_defender,
+                    region: most_active_region
+                },
+                attacker_outcome:{
+                    win: "xxx",
+                    loss: "xxx"
+                },
+                battle_type:uniquesArray_ofbattle_types,
+                defender_size: {
+                    average: "xxx",
+                    min: "xxx",
+                    max: "xxx"
+                }
+            }
+
+            resp.json(response);
         }
     })
 });
-
 
 
 todoRoutes.post('/todo', (req: express.Request, resp: express.Response, next: express.NextFunction) =>{
