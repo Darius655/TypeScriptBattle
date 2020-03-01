@@ -53,7 +53,7 @@ todoRoutes.get('/count', (req: express.Request, resp: express.Response, next: ex
     })
 });
 
-
+//Stats Done:
 todoRoutes.get('/stats', (req: express.Request, resp: express.Response, next: express.NextFunction) =>{
     const collection = getCollection();
     collection.find({}).toArray((err, battles) => {
@@ -126,10 +126,7 @@ todoRoutes.get('/stats', (req: express.Request, resp: express.Response, next: ex
                 found_region = false;  
                 found_battle_type = false;
             }
-            console.log(uniquesArray_ofAttacker);
-            console.log(uniquesArray_ofdefender);
-            console.log(uniquesArray_ofregion);
-            console.log(uniquesArray_ofbattle_types);
+
             //FIND MOST ACTIVE VALUES FROM ARRAYS
             let most_appeared_attack_values = 0;
             let most_appeared_def_values = 0;
@@ -180,12 +177,46 @@ todoRoutes.get('/stats', (req: express.Request, resp: express.Response, next: ex
                 counter_reg = 0;
             }
 
-            // console.log(most_active_attacker);
-            // console.log(most_active_defender);
-            // console.log(most_active_region);
+            //ATTACKER OUT COME found
+            let win_count = 0;
+            let loss_count = 0;
+            for(let i = 0 ; i < battles.length; i++){
+                if(battles[i].attacker_outcome == 'win')
+                {
+                    win_count++;
+                }
+                if(battles[i].attacker_outcome == 'loss')
+                {
+                    loss_count++;
+                }
+            }
+            //DEFFENDER AMOUNT INFORMATION
+            let defendermin;
+            let defendermax;
+            let defenderaverage;
+            let sum = 0;
+            let defenderValuesArray = [];
 
+            for(let i = 0 ; i < battles.length; i++){
+                if(battles[i].defender_size == '')
+                {
+                    battles[i].defender_size = null;
+                }
+                defenderValuesArray[i] = battles[i].defender_size;
+            }
+            var Filttered_defenderValuesArray = defenderValuesArray.filter(function (el) {
+                return el != null;
+            });
 
+            
+            defendermin = Math.min.apply(null, Filttered_defenderValuesArray);
+            defendermax = Math.max.apply(null, Filttered_defenderValuesArray);
 
+            for(let i = 0 ; i < Filttered_defenderValuesArray.length; i++){
+                sum += Filttered_defenderValuesArray[i];
+            }
+
+            defenderaverage = sum/Filttered_defenderValuesArray.length;
 
             let response = {
                 most_active: {
@@ -194,14 +225,14 @@ todoRoutes.get('/stats', (req: express.Request, resp: express.Response, next: ex
                     region: most_active_region
                 },
                 attacker_outcome:{
-                    win: "xxx",
-                    loss: "xxx"
+                    win: win_count,
+                    loss: loss_count
                 },
                 battle_type:uniquesArray_ofbattle_types,
                 defender_size: {
-                    average: "xxx",
-                    min: "xxx",
-                    max: "xxx"
+                    average: defenderaverage,
+                    min: defendermin,
+                    max: defendermax
                 }
             }
 
@@ -211,14 +242,31 @@ todoRoutes.get('/stats', (req: express.Request, resp: express.Response, next: ex
 });
 
 
-todoRoutes.post('/todo', (req: express.Request, resp: express.Response, next: express.NextFunction) =>{
+todoRoutes.get('/search', (req: express.Request, resp: express.Response, next: express.NextFunction) =>{
+    const collection = getCollection();
+    collection.find({}).toArray((err, battles) => {
+        if(err){
+            resp.status(500);
+            resp.end();
+            console.error('Cautch Error', err);
+        }else{            
+
+
+            
+            resp.json(null);
+        }
+    })
+});
+
+
+todoRoutes.post('/search', (req: express.Request, resp: express.Response, next: express.NextFunction) =>{
     const description = req.body['description'];
     const collection = getCollection();
     collection.insert({description: description});
     resp.end();
 });
 
-todoRoutes.put('/todo/:id', (req: express.Request, resp: express.Response, next: express.NextFunction) =>{
+todoRoutes.put('/search/:id', (req: express.Request, resp: express.Response, next: express.NextFunction) =>{
     console.info(req.body);
     console.info(req.params.id);
     const description = req.body['description'];
